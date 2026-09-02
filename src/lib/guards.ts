@@ -4,9 +4,11 @@ import { getSession, type Session } from "./session";
 import type { Role } from "./types";
 
 /**
- * Page-level guards. `middleware.ts` already blocks unauthenticated traffic at
+ * Page-level guards. `src/proxy.ts` already blocks unauthenticated traffic at
  * the edge; these run again in the server component so a route can never render
- * data for the wrong role even if middleware is bypassed or misconfigured.
+ * data for the wrong role even if the edge layer is bypassed or misconfigured.
+ * Next.js has shipped middleware auth-bypass CVEs before — this is why the
+ * check is repeated here rather than trusted once at the edge.
  */
 async function require(roles: Role[], loginNext: string): Promise<Session> {
   const session = await getSession();

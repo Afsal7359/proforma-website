@@ -127,9 +127,13 @@ There's no public signup. Admin creates people, and the system mints a login:
    it's wiped from the database.
 5. Admin can generate a fresh password or disable a login at any time.
 
-Sessions are signed JWTs in an httpOnly cookie (12 hours). `src/middleware.ts`
+Sessions are signed JWTs in an httpOnly cookie (12 hours). `src/proxy.ts`
 gates the three areas at the edge; `src/lib/guards.ts` re-checks server-side so
 a route can never render data for the wrong role.
+
+The check is deliberately done twice. Next.js has shipped middleware
+auth-bypass advisories before, so the edge gate is treated as an optimisation,
+not as the security boundary — the server-side guard is.
 
 ---
 
@@ -248,6 +252,7 @@ src/
       cron/keepalive/        the daily heartbeat endpoint
       newsletter/            footer signup
     globals.css              original design CSS verbatim + panel styles
+  proxy.ts                   edge auth gate (was middleware.ts before Next 16)
   components/
     site/                    homepage sections
     panel/                   dashboards, forms, CMS editor
