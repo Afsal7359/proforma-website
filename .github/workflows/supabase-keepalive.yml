@@ -1,0 +1,40 @@
+name: Supabase keep-alive
+
+# A free-tier Supabase project pauses after ~7 days of database inactivity,
+# which would take the site down. This pings it daily.
+#
+# Runs independently of Vercel Cron so one platform going quiet can't take
+# the database with it.
+#
+# Repository secrets required:
+#   NEXT_PUBLIC_SUPABASE_URL
+#   SUPABASE_SERVICE_ROLE_KEY
+
+on:
+  schedule:
+    # 06:11 UTC daily — deliberately off the hour, since GitHub delays
+    # workflows scheduled on the hour when the queue is busy.
+    - cron: "11 6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: supabase-keepalive
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Ping Supabase
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          KEEPALIVE_SOURCE: github-actions
+        run: node scripts/keepalive.mjs
